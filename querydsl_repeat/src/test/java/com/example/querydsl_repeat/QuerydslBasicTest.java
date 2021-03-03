@@ -306,6 +306,52 @@ public class QuerydslBasicTest {
                 .extracting("username")
                 .containsExactly("teamA", "teamB");
 
+    }
+
+    /**
+     * 회원과 팀을 조인하면서, 팀이름이 teamA인 팀만 조인, 회원은 모두 조회
+     * JPQL : select m,t from member t left join m.team t on t.name = 'teamA';
+     * @throws Exception
+     */
+    @Test
+    public void join_on_filtering() throws Exception {
+        //when
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(member.team, team)
+                .on(team.name.eq("teamA"))
+                .fetch();
+
+        //then
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+
+
+    }
+
+    /**
+     * 회원의 이름과 팀의 이름이 같은 대상 외부 조인
+     * @throws Exception
+     */
+    @Test
+    public void join_on_no_relation() throws Exception {
+        //given
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+
+        //when
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team)
+                .on(member.username.eq(team.name))
+                .fetch();
+        //then
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple); 
+        }
 
     }
 }
